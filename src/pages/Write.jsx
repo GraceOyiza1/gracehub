@@ -1,8 +1,45 @@
 import React, { useState } from 'react';
-import { db, storage } from '../firebase';
+import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
+
+const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800;
+                const MAX_HEIGHT = 800;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', 0.6));
+            };
+            img.onerror = (error) => reject(error);
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};
 
 function Write() {
     const [title, setTitle] = useState('');
@@ -22,9 +59,7 @@ function Write() {
         try {
             let url = "";
             if (image) {
-                const imageRef = ref(storage, `articles/${image.name + Date.now()}`);
-                await uploadBytes(imageRef, image);
-                url = await getDownloadURL(imageRef);
+                url = await compressImage(image);
             }
 
             await addDoc(collection(db, "articles"), {
@@ -76,6 +111,17 @@ function Write() {
                         <button className="btn-primary" onClick={handleSubmit} style={{ padding: '8px 20px' }}>{loading ? "..." : "Publish"}</button>
                     </div>
                 </div>
+
+                {image && (
+                    <div className="bg-white/5 border border-white/10 p-2 mb-16 rounded-[2.5rem] overflow-hidden">
+                        <img 
+                            src={URL.createObjectURL(image)} 
+                            alt="Cover Preview" 
+                            className="w-full h-auto max-h-[600px] object-cover rounded-[2.2rem]" 
+                        />
+                    </div>
+                )}
+
                 <h1 className="article-title">{title || "Your Untitled Story"}</h1>
                 <div style={{ color: 'var(--text-secondary)', marginBottom: '40px', fontSize: '1.1rem' }}>In <span style={{ color: 'var(--accent)' }}>{category}</span></div>
                 <div className="article-body" style={{ whiteSpace: 'pre-wrap' }}>{content || "Tap 'Edit' to write..."}</div>
@@ -121,9 +167,9 @@ function Write() {
                         onChange={(e) => setCategory(e.target.value)}
                     >
                         <option value="Tech">Tech</option>
+                        <option value="Digital Publishing">Digital Publishing</option>
+                        <option value="Insights">Insights</option>
                         <option value="Culture">Culture</option>
-                        <option value="Development">Development</option>
-                        <option value="Personal">Personal</option>
                     </select>
                     
                     <label style={{ cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
