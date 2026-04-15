@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 
 function ArticleDetail() {
     const { id } = useParams();
@@ -9,6 +9,12 @@ function ArticleDetail() {
     const [article, setArticle] = useState(location.state?.article || null);
     const [loading, setLoading] = useState(!article);
     const [error, setError] = useState(null);
+    
+    // User interaction state
+    const [hasLiked, setHasLiked] = useState(false);
+    const [hasDisliked, setHasDisliked] = useState(false);
+    const [likes, setLikes] = useState(0);
+    const [dislikes, setDislikes] = useState(0);
 
     useEffect(() => {
         // If we already have the article from the location state, no need to fetch immediately
@@ -22,7 +28,10 @@ function ArticleDetail() {
                 const docRef = doc(db, "articles", id);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    setArticle(docSnap.data());
+                    const data = docSnap.data();
+                    setArticle(data);
+                    setLikes(data.likes || 0);
+                    setDislikes(data.dislikes || 0);
                 } else {
                     setError("Story not found.");
                 }
@@ -33,7 +42,45 @@ function ArticleDetail() {
             setLoading(false);
         };
         fetchArticle();
+
+        // Check local storage for previous interaction
+        const interaction = localStorage.getItem(`interaction-${id}`);
+        if (interaction === 'like') setHasLiked(true);
+        if (interaction === 'dislike') setHasDisliked(true);
     }, [id, location.state]);
+
+    const handleLike = async () => {
+        if (hasLiked || hasDisliked) return;
+        
+        // Optimistic UI
+        setLikes(prev => prev + 1);
+        setHasLiked(true);
+        localStorage.setItem(`interaction-${id}`, 'like');
+
+        try {
+            const docRef = doc(db, "articles", id);
+            await updateDoc(docRef, { likes: increment(1) });
+        } catch (err) {
+            console.error("Like error:", err);
+            // Rollback on failure if needed, but for simplicity we keep it
+        }
+    };
+
+    const handleDislike = async () => {
+        if (hasLiked || hasDisliked) return;
+
+        // Optimistic UI
+        setDislikes(prev => prev + 1);
+        setHasDisliked(true);
+        localStorage.setItem(`interaction-${id}`, 'dislike');
+
+        try {
+            const docRef = doc(db, "articles", id);
+            await updateDoc(docRef, { dislikes: increment(1) });
+        } catch (err) {
+            console.error("Dislike error:", err);
+        }
+    };
 
     const formatDate = (timestamp) => {
         if (!timestamp) return "Processing...";
@@ -99,6 +146,44 @@ function ArticleDetail() {
             {/* Content Body */}
             <div className="font-serif text-[1.25rem] sm:text-[1.4rem] leading-relaxed text-slate-200 whitespace-pre-wrap selection:bg-violet-500/30">
                 {article.content}
+            </div>
+
+            {/* Engagement Section */}
+            <div className="mt-16 flex items-center justify-center gap-6 py-8 border-y border-white/5">
+                <div className="flex flex-col items-center gap-2">
+                    <button 
+                        onClick={handleLike}
+                        disabled={hasLiked || hasDisliked}
+                        className={`group p-4 rounded-full border transition-all duration-300 ${
+                            hasLiked 
+                                ? 'bg-violet-500/10 border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.3)]' 
+                                : 'bg-white/5 border-white/10 hover:border-violet-500/50 hover:bg-white/10'
+                        } ${hasLiked || hasDisliked ? 'cursor-default' : 'cursor-pointer hover:scale-110 active:scale-95'}`}
+                    >
+                        <svg className={`w-6 h-6 transition-colors ${hasLiked ? 'text-violet-400 fill-violet-400' : 'text-white group-hover:text-violet-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </button>
+                    <span className={`text-sm font-bold tracking-tight ${hasLiked ? 'text-violet-400' : 'text-slate-500'}`}>{likes}</span>
+                </div>
+
+                <div className="flex flex-col items-center gap-2">
+                    <button 
+                        onClick={handleDislike}
+                        disabled={hasLiked || hasDisliked}
+                        className={`group p-4 rounded-full border transition-all duration-300 ${
+                            hasDisliked 
+                                ? 'bg-white/10 border-white/20 opacity-50' 
+                                : 'bg-white/5 border-white/10 hover:border-slate-500/50 hover:bg-white/10 text-slate-400'
+                        } ${hasLiked || hasDisliked ? 'cursor-default' : 'cursor-pointer hover:scale-110 active:scale-95'}`}
+                    >
+                        <svg className="w-6 h-6 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14h5v4m0-4h5v4m0-4h5v4m-5-4h5v4" visibility="hidden" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                    <span className={`text-sm font-bold tracking-tight ${hasDisliked ? 'text-slate-400' : 'text-slate-500'}`}>{dislikes}</span>
+                </div>
             </div>
             
             {/* Footer Call to Action */}

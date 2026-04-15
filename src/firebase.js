@@ -4,12 +4,12 @@ import { getStorage } from "firebase/storage";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAM84qaUIi9CKThmqugLTzxfU4LcmaZ_8g",
-    authDomain: "gracehub-25d09.firebaseapp.com",
-    projectId: "gracehub-25d09",
-    storageBucket: "gracehub-25d09.firebasestorage.app",
-    messagingSenderId: "166162068077",
-    appId: "1:166162068077:web:4b8b0b794b9cc316cb0564"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
