@@ -28,14 +28,10 @@ function Navbar() {
               <Link to="/write" className="text-violet-400 hover:text-violet-300 transition-colors">Write</Link>
             </>
           )}
-          {user ? (
+          {user && (
             <button onClick={handleLogout} className="bg-white/5 border border-white/10 px-4 py-1.5 rounded-xl text-white font-semibold cursor-pointer text-xs hover:bg-white/10 transition-colors">
               Sign out
             </button>
-          ) : (
-            <Link to="/login" className="bg-gradient-to-br from-violet-600 to-purple-600 px-4 py-1.5 rounded-xl text-white font-semibold text-xs transition-transform hover:scale-105">
-              Sign in
-            </Link>
           )}
         </nav>
       </div>

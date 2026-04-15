@@ -1,7 +1,7 @@
 import React from 'react';
 import { auth, provider } from '../firebase';
 import { signInWithPopup } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 function Login() {
     const navigate = useNavigate();
@@ -24,12 +24,17 @@ function Login() {
             <p className="text-slate-400 text-lg sm:text-xl font-medium mb-10 max-w-md">
                 Sign in to your dashboard to write and manage your stories.
             </p>
-            <button 
-                className="bg-gradient-to-br from-violet-600 to-purple-600 px-8 py-4 rounded-2xl text-white font-bold text-lg shadow-xl shadow-violet-500/20 transition-transform hover:scale-105" 
-                onClick={handleLogin}
-            >
-                Sign in with Google
-            </button>
+            <div className="flex flex-col items-center gap-2">
+                <button 
+                    className="bg-gradient-to-br from-violet-600 to-purple-600 px-8 py-4 rounded-2xl text-white font-bold text-lg shadow-xl shadow-violet-500/20 transition-transform hover:scale-105" 
+                    onClick={handleLogin}
+                >
+                    Sign in with Google
+                </button>
+                <Link to="/" className="text-slate-400 hover:text-white font-semibold transition-colors mt-4 text-sm">
+                    ← Back to Home
+                </Link>
+            </div>
         </div>
     );
 }
