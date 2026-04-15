@@ -69,7 +69,7 @@ function Dashboard() {
                 {!loading && !error && articles.length === 0 ? (
                     <div className="bg-white/5 border border-white/10 p-16 rounded-3xl text-center flex flex-col items-center">
                         <p className="text-slate-400 mb-6 text-lg">You haven't published any stories yet.</p>
-                        <Link to="/write" className="bg-gradient-to-br from-violet-600 to-blue-600 px-6 py-3 rounded-xl text-white font-bold inline-block hover:scale-105 transition-transform shadow-lg shadow-violet-500/20">Write Your First Story</Link>
+                        <Link to="/write" className="bg-gradient-to-br from-violet-600 to-purple-600 px-6 py-3 rounded-xl text-white font-bold inline-block hover:scale-105 transition-transform shadow-lg shadow-violet-500/20">Write Your First Story</Link>
                     </div>
                 ) : (
                     !loading && !error && articles.map(article => (

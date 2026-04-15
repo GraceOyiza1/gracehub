@@ -7,6 +7,7 @@ function Home() {
     const [articles, setArticles] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [selectedCategory, setSelectedCategory] = useState("All");
 
     useEffect(() => {
         const q = query(collection(db, "articles"), orderBy("createdAt", "desc"));
@@ -34,6 +35,10 @@ function Home() {
         }
     };
 
+    const filteredArticles = selectedCategory === "All" 
+        ? articles 
+        : articles.filter(article => article.category === selectedCategory);
+
     return (
         <div className="max-w-[800px] mx-auto px-6 pb-24">
             {/* Hero Section */}
@@ -42,15 +47,24 @@ function Home() {
                     GraceHub.
                 </h1>
                 <p className="text-lg sm:text-xl text-slate-400 max-w-xl mx-auto font-medium px-4">
-                    Stories, insights, and digital artifacts curated by <strong className="text-white">Grace Oyiza</strong>.
+                    Stories, insights, growth, and real life.
                 </p>
                 <div className="mt-8 flex gap-3 justify-center flex-wrap">
-                    <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-violet-400">
-                        {articles.length} Stories
-                    </span>
-                    <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-slate-400">Tech</span>
-                    <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-slate-400">Digital Publishing</span>
-                    <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-slate-400">Insights</span>
+                    <button 
+                        onClick={() => setSelectedCategory("All")}
+                        className={`px-3 py-1 border rounded-full text-xs font-bold cursor-pointer transition-colors ${selectedCategory === "All" ? 'bg-violet-500/20 border-violet-500/30 text-violet-400' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'}`}
+                    >
+                        {articles.length} Stories (All)
+                    </button>
+                    {["Personal Stories", "Motivation & Mindset", "Tech & Learning", "Business & Side Hustles", "Short Reads / Micro Stories"].map(cat => (
+                        <button 
+                            key={cat}
+                            onClick={() => setSelectedCategory(cat)}
+                            className={`px-3 py-1 border rounded-full text-xs font-bold cursor-pointer transition-colors ${selectedCategory === cat ? 'bg-violet-500/20 border-violet-500/30 text-violet-400' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'}`}
+                        >
+                            {cat}
+                        </button>
+                    ))}
                 </div>
             </div>
             
@@ -70,13 +84,13 @@ function Home() {
                     </div>
                 )}
 
-                {!loading && !error && articles.length === 0 && (
+                {!loading && !error && filteredArticles.length === 0 && (
                     <div className="bg-white/5 border border-white/10 p-10 rounded-3xl text-center">
-                        <div className="text-slate-500">No stories found yet.</div>
+                        <div className="text-slate-500">No stories found.</div>
                     </div>
                 )}
 
-                {articles.map(article => (
+                {filteredArticles.map(article => (
                     <Link 
                         key={article.id} 
                         to={`/article/${article.id}`} 
@@ -92,13 +106,13 @@ function Home() {
                                     {formatDate(article.createdAt)}
                                 </span>
                             </div>
-                            <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 group-hover:text-violet-400 transition-colors">
+                            <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 group-hover:text-purple-400 transition-colors">
                                 {article.title}
                             </h2>
                             <p className="text-slate-400 text-lg leading-relaxed line-clamp-3 mb-6">
                                 {article.content}
                             </p>
-                            <div className="text-sm font-bold text-white/50 group-hover:text-violet-400 transition-colors uppercase tracking-[0.2em]">
+                            <div className="text-sm font-bold text-white/50 group-hover:text-purple-400 transition-colors uppercase tracking-[0.2em]">
                                 Read Full Story →
                             </div>
                         </div>

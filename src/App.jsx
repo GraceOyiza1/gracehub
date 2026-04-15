@@ -16,7 +16,7 @@ function Navbar() {
   return (
     <header className="sticky top-0 z-50 py-6 bg-black/70 backdrop-blur-2xl border-b border-white/10">
       <div className="max-w-[800px] mx-auto px-6 flex justify-between items-center flex-wrap gap-4">
-        <Link to="/" className="text-3xl font-black tracking-tighter bg-gradient-to-br from-violet-500 to-blue-500 bg-clip-text text-transparent">
+        <Link to="/" className="text-3xl font-black tracking-tighter bg-gradient-to-br from-violet-500 to-purple-500 bg-clip-text text-transparent">
           GraceHub.
         </Link>
         
@@ -33,7 +33,7 @@ function Navbar() {
               Sign out
             </button>
           ) : (
-            <Link to="/login" className="bg-gradient-to-br from-violet-600 to-blue-600 px-4 py-1.5 rounded-xl text-white font-semibold text-xs transition-transform hover:scale-105">
+            <Link to="/login" className="bg-gradient-to-br from-violet-600 to-purple-600 px-4 py-1.5 rounded-xl text-white font-semibold text-xs transition-transform hover:scale-105">
               Sign in
             </Link>
           )}

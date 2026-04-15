@@ -44,7 +44,7 @@ const compressImage = (file) => {
 function Write() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [category, setCategory] = useState('Tech');
+    const [category, setCategory] = useState('Personal Stories');
     const [image, setImage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [isPublished, setIsPublished] = useState(false);
@@ -103,12 +103,12 @@ function Write() {
 
     if (isPreview) {
         return (
-            <div className="container" style={{ paddingBottom: '100px', paddingTop: 'clamp(20px, 5vw, 40px)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'clamp(30px, 10vw, 60px)', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
-                    <div className="badge">Preview Mode</div>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <button className="btn-primary" style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--glass-border)', padding: '8px 16px' }} onClick={() => setIsPreview(false)}>Edit</button>
-                        <button className="btn-primary" onClick={handleSubmit} style={{ padding: '8px 20px' }}>{loading ? "..." : "Publish"}</button>
+            <div className="max-w-[800px] mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-24">
+                <div className="flex justify-between mb-10 sm:mb-16 items-center flex-wrap gap-4">
+                    <div className="bg-white/10 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-slate-300">Preview Mode</div>
+                    <div className="flex gap-3">
+                        <button className="bg-white/5 text-white border border-white/10 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-white/10 transition-colors" onClick={() => setIsPreview(false)}>Edit</button>
+                        <button className="bg-violet-600 px-5 py-2 rounded-xl text-white text-sm font-semibold hover:bg-violet-500 transition-colors" onClick={handleSubmit}>{loading ? "..." : "Publish"}</button>
                     </div>
                 </div>
 
@@ -122,7 +122,7 @@ function Write() {
                     </div>
                 )}
 
-                <h1 className="article-title">{title || "Your Untitled Story"}</h1>
+                <h1 className="text-4xl sm:text-5xl font-black leading-[1.1] tracking-tight article-title mb-4">{title || "Your Untitled Story"}</h1>
                 <div style={{ color: 'var(--text-secondary)', marginBottom: '40px', fontSize: '1.1rem' }}>In <span style={{ color: 'var(--accent)' }}>{category}</span></div>
                 <div className="article-body" style={{ whiteSpace: 'pre-wrap' }}>{content || "Tap 'Edit' to write..."}</div>
             </div>
@@ -130,46 +130,46 @@ function Write() {
     }
 
     return (
-        <div className="container" style={{ paddingTop: 'clamp(20px, 5vw, 40px)' }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'clamp(30px, 10vw, 60px)', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent)' }}></div>
-                    <h2 style={{ fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Drafting</h2>
+        <div className="max-w-[800px] mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-24">
+            <header className="flex justify-between mb-10 sm:mb-16 items-center flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-violet-500"></div>
+                    <h2 className="text-base text-slate-400 font-semibold">Drafting</h2>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                    <button className="btn-primary" style={{ background: 'none', color: 'var(--text-secondary)', border: '1px solid var(--glass-border)', boxShadow: 'none', padding: '8px 16px' }} onClick={() => setIsPreview(true)}>Preview</button>
-                    <button className="btn-primary" onClick={handleSubmit} style={{ padding: '8px 20px' }}>{loading ? "..." : "Publish"}</button>
+                <div className="flex gap-3">
+                    <button className="bg-transparent text-slate-400 border border-white/10 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-white/5 transition-colors" onClick={() => setIsPreview(true)}>Preview</button>
+                    <button className="bg-violet-600 px-5 py-2 rounded-xl text-white font-semibold text-sm hover:bg-violet-500 transition-colors" onClick={handleSubmit}>{loading ? "..." : "Publish"}</button>
                 </div>
             </header>
 
-            <form style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            <form className="flex flex-col gap-6 sm:gap-8">
                 <input 
                     type="text" 
                     placeholder="Story Title" 
-                    className="article-title"
+                    className="text-4xl sm:text-5xl font-black leading-[1.1] tracking-tight text-white placeholder-slate-600"
                     style={{ 
                         border: 'none', 
                         outline: 'none', 
-                        fontWeight: 900, 
                         width: '100%', 
                         fontFamily: 'var(--font-sans)', 
-                        background: 'none', 
+                        background: 'transparent', 
                         padding: '0'
                     }} 
                     value={title}
                     onChange={(e) => setTitle(e.target.value)} 
                 />
 
-                <div className="glass-card mobile-stack" style={{ display: 'flex', gap: '20px', alignItems: 'center', padding: '15px 25px', width: 'fit-content' }}>
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-start sm:items-center px-4 py-4 sm:px-6 sm:py-4 w-full sm:w-max bg-white/5 border border-white/10 rounded-2xl">
                     <select 
-                        style={{ padding: '8px 12px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', color: 'white', fontWeight: 600, outline: 'none', fontSize: '0.9rem' }} 
+                        className="px-3 py-2 border border-white/10 bg-white/5 rounded-xl text-white font-semibold outline-none text-sm w-full sm:w-auto focus:border-violet-500/50"
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
                     >
-                        <option value="Tech">Tech</option>
-                        <option value="Digital Publishing">Digital Publishing</option>
-                        <option value="Insights">Insights</option>
-                        <option value="Culture">Culture</option>
+                        <option value="Personal Stories">Personal Stories</option>
+                        <option value="Motivation & Mindset">Motivation & Mindset</option>
+                        <option value="Tech & Learning">Tech & Learning</option>
+                        <option value="Business & Side Hustles">Business & Side Hustles</option>
+                        <option value="Short Reads / Micro Stories">Short Reads / Micro Stories</option>
                     </select>
                     
                     <label style={{ cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -25,7 +25,7 @@ function Login() {
                 Sign in to your dashboard to write and manage your stories.
             </p>
             <button 
-                className="bg-gradient-to-br from-violet-600 to-blue-600 px-8 py-4 rounded-2xl text-white font-bold text-lg shadow-xl shadow-violet-500/20 transition-transform hover:scale-105" 
+                className="bg-gradient-to-br from-violet-600 to-purple-600 px-8 py-4 rounded-2xl text-white font-bold text-lg shadow-xl shadow-violet-500/20 transition-transform hover:scale-105" 
                 onClick={handleLogin}
             >
                 Sign in with Google

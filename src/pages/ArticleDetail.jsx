@@ -77,7 +77,7 @@ function ArticleDetail() {
                 </h1>
 
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-blue-600 shrink-0 shadow-lg shadow-violet-500/20"></div>
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 shrink-0 shadow-lg shadow-violet-500/20"></div>
                     <div>
                         <div className="font-bold text-lg">Grace Oyiza</div>
                         <div className="text-sm text-slate-500 font-medium">Publisher & Author</div>
@@ -107,7 +107,7 @@ function ArticleDetail() {
                 <p className="text-slate-400 mb-10 text-lg leading-relaxed max-w-lg mx-auto">
                     If you enjoyed this story, consider exploring more from my recent publication.
                 </p>
-                <Link to="/" className="bg-gradient-to-br from-violet-600 to-blue-600 px-8 py-4 rounded-2xl text-white font-black text-lg shadow-xl shadow-violet-500/20 transition-transform hover:scale-105 inline-block">
+                <Link to="/" className="bg-gradient-to-br from-violet-600 to-purple-600 px-8 py-4 rounded-2xl text-white font-black text-lg shadow-xl shadow-violet-500/20 transition-transform hover:scale-105 inline-block">
                     Explore More Stories
                 </Link>
             </div>
