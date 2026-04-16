@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
 
 function ArticleDetail() {
-    const { id } = useParams();
+    const { slug } = useParams();
     const location = useLocation();
-    const [article, setArticle] = useState(location.state?.article || null);
-    const [loading, setLoading] = useState(!article);
+    const [article, setArticle] = useState(null);
+    const [articleId, setArticleId] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
     // User interaction state
@@ -17,19 +18,17 @@ function ArticleDetail() {
     const [dislikes, setDislikes] = useState(0);
 
     useEffect(() => {
-        // If we already have the article from the location state, no need to fetch immediately
-        if (location.state?.article) {
-            setLoading(false);
-            return;
-        }
-
         const fetchArticle = async () => {
             try {
-                const docRef = doc(db, "articles", id);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
+                // Try fetching by slug from Firestore
+                const q = query(collection(db, "articles"), where("slug", "==", slug));
+                const snapshot = await getDocs(q);
+
+                if (!snapshot.empty) {
+                    const docSnap = snapshot.docs[0];
                     const data = docSnap.data();
                     setArticle(data);
+                    setArticleId(docSnap.id);
                     setLikes(data.likes || 0);
                     setDislikes(data.dislikes || 0);
                 } else {
@@ -41,45 +40,41 @@ function ArticleDetail() {
             }
             setLoading(false);
         };
+
         fetchArticle();
 
         // Check local storage for previous interaction
-        const interaction = localStorage.getItem(`interaction-${id}`);
+        const interaction = localStorage.getItem(`interaction-${slug}`);
         if (interaction === 'like') setHasLiked(true);
         if (interaction === 'dislike') setHasDisliked(true);
-    }, [id, location.state]);
+    }, [slug]);
+
+    // Dynamic SEO: update browser tab title when article loads
+    useEffect(() => {
+        if (article?.title) {
+            document.title = `${article.title} | GraceHub`;
+        }
+        return () => { document.title = 'GraceHub'; };
+    }, [article]);
 
     const handleLike = async () => {
         if (hasLiked || hasDisliked) return;
-        
-        // Optimistic UI
         setLikes(prev => prev + 1);
         setHasLiked(true);
-        localStorage.setItem(`interaction-${id}`, 'like');
-
+        localStorage.setItem(`interaction-${slug}`, 'like');
         try {
-            const docRef = doc(db, "articles", id);
-            await updateDoc(docRef, { likes: increment(1) });
-        } catch (err) {
-            console.error("Like error:", err);
-            // Rollback on failure if needed, but for simplicity we keep it
-        }
+            await updateDoc(doc(db, "articles", articleId), { likes: increment(1) });
+        } catch (err) { console.error("Like error:", err); }
     };
 
     const handleDislike = async () => {
         if (hasLiked || hasDisliked) return;
-
-        // Optimistic UI
         setDislikes(prev => prev + 1);
         setHasDisliked(true);
-        localStorage.setItem(`interaction-${id}`, 'dislike');
-
+        localStorage.setItem(`interaction-${slug}`, 'dislike');
         try {
-            const docRef = doc(db, "articles", id);
-            await updateDoc(docRef, { dislikes: increment(1) });
-        } catch (err) {
-            console.error("Dislike error:", err);
-        }
+            await updateDoc(doc(db, "articles", articleId), { dislikes: increment(1) });
+        } catch (err) { console.error("Dislike error:", err); }
     };
 
     const formatDate = (timestamp) => {

@@ -93,8 +93,7 @@ function Home() {
                 {filteredArticles.map(article => (
                     <Link 
                         key={article.id} 
-                        to={`/article/${article.id}`} 
-                        state={{ article }} 
+                        to={`/article/${article.slug || article.id}`} 
                         className="group relative bg-white/[0.03] border border-white/10 p-8 rounded-3xl flex flex-col sm:flex-row justify-between gap-6 transition-all hover:bg-white/[0.05] hover:border-white/20 active:scale-[0.98]"
                     >
                         <div className="flex-1">

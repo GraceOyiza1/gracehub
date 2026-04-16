@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { slugify } from '../utils/slugify';
 
 const compressImage = (file) => {
     return new Promise((resolve, reject) => {
@@ -62,15 +63,19 @@ function Write() {
                 url = await compressImage(image);
             }
 
+            const slug = slugify(title);
+
             await addDoc(collection(db, "articles"), {
                 title,
                 content,
                 category,
                 imageUrl: url,
+                slug,
                 createdAt: serverTimestamp(),
             });
 
             setIsPublished(true);
+            navigate(`/article/${slug}`);
         } catch (err) {
             console.error("Publishing error:", err);
             if (err.message.includes("blocked") || err.code === "unavailable") {

@@ -86,7 +86,7 @@ function Dashboard() {
                             </div>
                             
                             <div className="flex gap-4 items-center w-full sm:w-auto justify-end mt-2 sm:mt-0">
-                                <Link to={`/article/${article.id}`} state={{ article }} className="text-slate-400 font-bold text-sm hover:text-white transition-colors">View</Link>
+                                <Link to={`/article/${article.slug || article.id}`} className="text-slate-400 font-bold text-sm hover:text-white transition-colors">View</Link>
                                 <button 
                                     onClick={() => handleDelete(article.id)}
                                     className="bg-red-500/10 text-red-500 border border-red-500/20 px-4 py-2 rounded-xl font-bold text-sm hover:bg-red-500/20 transition-colors flex items-center gap-2 cursor-pointer"

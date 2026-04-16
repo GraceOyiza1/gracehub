@@ -51,7 +51,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/write" element={<Write />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/article/:id" element={<ArticleDetail />} />
+            <Route path="/article/:slug" element={<ArticleDetail />} />
           </Routes>
         </main>
       </Router>
