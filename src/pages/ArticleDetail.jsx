@@ -242,11 +242,11 @@ function ArticleDetail() {
 
             {/* Cover Image */}
             {article.imageUrl && (
-                <div className="p-2 mb-16 rounded-[2.5rem] overflow-hidden border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
+                <div className="mb-16 rounded-[2rem] overflow-hidden border shadow-2xl" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
                     <img
                         src={article.imageUrl}
                         alt={article.title}
-                        className="w-full h-auto max-h-[600px] object-cover rounded-[2.2rem]"
+                        className="w-full h-80 md:h-[450px] object-cover"
                     />
                 </div>
             )}

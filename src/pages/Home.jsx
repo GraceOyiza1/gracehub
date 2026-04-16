@@ -39,7 +39,7 @@ function Home() {
     const categories = ["Personal Stories", "Motivation & Mindset", "Tech & Learning", "Business & Side Hustles", "Short Reads / Micro Stories"];
 
     return (
-        <div className="max-w-[800px] mx-auto px-6 pb-24">
+        <div className="max-w-7xl mx-auto px-6 pb-24">
             {/* Hero Section */}
             <div className="py-16 sm:py-24 text-center">
                 <h1 className="text-5xl sm:text-7xl font-black tracking-tighter mb-4 article-title">
@@ -78,7 +78,7 @@ function Home() {
             </div>
 
             {/* Feed Section */}
-            <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
                 {loading && (
                     <div className="p-10 rounded-3xl text-center border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
                         <div className="animate-pulse" style={{ color: 'var(--text-muted)' }}>Gathering stories...</div>
@@ -105,48 +105,45 @@ function Home() {
                     <Link
                         key={article.id}
                         to={`/article/${article.slug || article.id}`}
-                        className="group relative p-8 rounded-3xl flex flex-col sm:flex-row justify-between gap-6 transition-all duration-300 active:scale-[0.98] border"
-                        style={{
-                            background: 'var(--bg-card)',
-                            borderColor: 'var(--border-color)',
-                        }}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.background = 'var(--bg-card-hover)';
-                            e.currentTarget.style.borderColor = 'var(--border-hover)';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.background = 'var(--bg-card)';
-                            e.currentTarget.style.borderColor = 'var(--border-color)';
-                        }}
+                        className="group flex flex-col gap-4 transition-all duration-300 active:scale-[0.98]"
                     >
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-4 text-xs font-bold flex-wrap">
-                                <span className="bg-violet-500/10 text-violet-500 border border-violet-500/20 px-3 py-1 rounded-full uppercase tracking-widest">
-                                    {article.category}
-                                </span>
-                                <span className="uppercase tracking-widest whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
-                                    {formatDate(article.createdAt)}
-                                </span>
-                            </div>
-                            <h2 className="text-2xl sm:text-3xl font-extrabold mb-3 transition-colors group-hover:text-violet-500" style={{ color: 'var(--text-primary)' }}>
-                                {article.title}
-                            </h2>
-                            <p className="text-base leading-relaxed line-clamp-3 mb-5" style={{ color: 'var(--text-secondary)' }}>
-                                {article.content}
-                            </p>
-                            <div className="text-sm font-bold uppercase tracking-[0.2em] transition-colors group-hover:text-violet-500" style={{ color: 'var(--text-muted)' }}>
-                                Read Full Story →
-                            </div>
-                        </div>
-                        {article.imageUrl && (
-                            <div className="w-full sm:w-40 sm:h-40 shrink-0 self-center overflow-hidden rounded-2xl">
+                        {/* Card Image */}
+                        <div className="h-48 w-full shrink-0 overflow-hidden rounded-xl border border-white/5" style={{ background: 'var(--bg-card)' }}>
+                            {article.imageUrl ? (
                                 <img
                                     src={article.imageUrl}
                                     alt={article.title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-slate-700">
+                                    <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Card Content */}
+                        <div className="flex flex-col gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-500/80">
+                                {article.category}
+                            </span>
+                            
+                            <h2 className="text-xl font-bold leading-tight transition-colors group-hover:underline decoration-violet-500/40 underline-offset-4" style={{ color: 'var(--text-primary)' }}>
+                                {article.title}
+                            </h2>
+
+                            <p className="text-sm line-clamp-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                                {article.content}
+                            </p>
+
+                            <div className="mt-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+                                <span>{formatDate(article.createdAt)}</span>
+                                <span style={{ color: 'var(--border-color)' }}>•</span>
+                                <span>{Math.ceil(article.content?.split(' ').length / 200)} min read</span>
                             </div>
-                        )}
+                        </div>
                     </Link>
                 ))}
             </div>
