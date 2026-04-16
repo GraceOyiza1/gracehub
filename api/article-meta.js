@@ -1,35 +1,40 @@
 /**
- * Vercel Edge Function: article-meta.js
+ * Vercel Node.js Serverless Function: article-meta.js
  *
- * Intercepts requests to /article/:slug, fetches the article from Firestore
- * using the REST API, injects OG meta tags into the static index.html, and
- * returns the enriched HTML. This enables proper WhatsApp, Twitter, and
- * Facebook link previews from a Vite SPA without needing SSR or Next.js.
+ * Intercepts /article/:slug requests, fetches the article from Firestore
+ * using the REST API, injects dynamic OG meta tags into index.html,
+ * and returns the enriched HTML so that WhatsApp / Twitter / Facebook
+ * link scrapers see article-specific previews.
  *
- * Regular users: get the full SPA (React takes over after initial load).
- * Social bots: get the OG-enriched HTML they need for link previews.
+ * Regular users also receive this HTML — the bundled JS takes over
+ * and renders the full React SPA as normal.
  */
 
-export const config = { runtime: 'edge' };
+export default async function handler(req, res) {
+    const { slug } = req.query;
 
-export default async function handler(req) {
-    const url = new URL(req.url);
-    const slug = url.searchParams.get('slug') || '';
+    // Construct the base URL dynamically from the incoming request headers.
+    // This works for both the main domain and Vercel preview deployments.
+    const host =
+        req.headers['x-forwarded-host'] ||
+        req.headers['host'] ||
+        'gracehub.vercel.app';
+    const proto = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${proto}://${host}`;
+    const articleUrl = `${baseUrl}/article/${slug}`;
+    const defaultImage = `${baseUrl}/og-default.png`;
 
-    const projectId = process.env.VITE_FIREBASE_PROJECT_ID;
-    const apiKey = process.env.VITE_FIREBASE_API_KEY;
-    const siteUrl = 'https://gracehub.vercel.app';
-    const articleUrl = `${siteUrl}/article/${slug}`;
-    const defaultImage = `${siteUrl}/og-default.png`;
-
-    // Default meta — used if the Firestore fetch fails or article isn't found
+    // --- Default meta used if the article is not found or fetch fails ---
     let meta = {
         title: 'GraceHub',
         description: 'Stories, insights, growth, and real life.',
         image: defaultImage,
     };
 
-    // --- Fetch article from Firestore REST API ---
+    // --- Fetch article meta from Firestore REST API ---
+    const projectId = process.env.VITE_FIREBASE_PROJECT_ID;
+    const apiKey = process.env.VITE_FIREBASE_API_KEY;
+
     try {
         const firestoreRes = await fetch(
             `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:runQuery?key=${apiKey}`,
@@ -64,59 +69,68 @@ export default async function handler(req) {
                 description:
                     rawContent.slice(0, 160).trim() +
                     (rawContent.length > 160 ? '...' : ''),
-                // Only use the stored image if it's a real URL (not a base64 data URI)
+                // Only use real hosted URLs for OG image — not base64 data URIs
                 image: rawImage.startsWith('http') ? rawImage : defaultImage,
             };
         }
     } catch (err) {
-        console.error('[article-meta] Firestore fetch error:', err);
+        console.error('[article-meta] Firestore fetch error:', err.message);
     }
 
-    // --- Fetch the SPA index.html to inject meta into it ---
-    let html = '';
+    // --- Fetch the built index.html to inject OG tags into ---
+    let indexHtml = '';
     try {
-        const indexRes = await fetch(`${siteUrl}/index.html`);
-        html = await indexRes.text();
+        const indexRes = await fetch(`${baseUrl}/index.html`);
+        if (indexRes.ok) {
+            indexHtml = await indexRes.text();
+        }
     } catch (err) {
-        console.error('[article-meta] index.html fetch error:', err);
-        // Fallback: serve a minimal redirect page
-        return new Response(
-            `<!DOCTYPE html><html><head>
-              <meta property="og:title" content="${meta.title} | GraceHub">
-              <meta property="og:description" content="${meta.description}">
-              <meta property="og:image" content="${meta.image}">
-              <meta property="og:url" content="${articleUrl}">
-              <meta name="twitter:card" content="summary_large_image">
-              <script>location.href="${articleUrl}"</script>
-            </head><body><a href="${articleUrl}">${meta.title}</a></body></html>`,
-            { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-        );
+        console.error('[article-meta] index.html fetch error:', err.message);
     }
 
-    // --- Inject dynamic OG tags into <head> ---
+    // --- Build the OG tag block ---
+    const escapedTitle = meta.title.replace(/"/g, '&quot;');
+    const escapedDesc = meta.description.replace(/"/g, '&quot;');
+
     const ogTags = `
-    <!-- Dynamic OG Tags (injected by Edge function) -->
-    <title>${meta.title} | GraceHub</title>
-    <meta name="description" content="${meta.description}">
+    <!-- Dynamic OG meta (injected by Vercel function for article: ${slug}) -->
+    <title>${escapedTitle} | GraceHub</title>
+    <meta name="description" content="${escapedDesc}">
     <meta property="og:type" content="article">
-    <meta property="og:title" content="${meta.title} | GraceHub">
-    <meta property="og:description" content="${meta.description}">
+    <meta property="og:title" content="${escapedTitle} | GraceHub">
+    <meta property="og:description" content="${escapedDesc}">
     <meta property="og:url" content="${articleUrl}">
     <meta property="og:image" content="${meta.image}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="GraceHub">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${meta.title} | GraceHub">
-    <meta name="twitter:description" content="${meta.description}">
+    <meta name="twitter:title" content="${escapedTitle} | GraceHub">
+    <meta name="twitter:description" content="${escapedDesc}">
     <meta name="twitter:image" content="${meta.image}">`;
 
-    // Insert just after <head> so dynamic tags override the static defaults
-    html = html.replace('<head>', `<head>${ogTags}`);
+    if (indexHtml) {
+        // Inject dynamic tags right after <head> — they override the static defaults
+        indexHtml = indexHtml.replace('<head>', `<head>${ogTags}`);
+    } else {
+        // Fallback: serve a minimal but functional OG page
+        indexHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  ${ogTags}
+</head>
+<body>
+  <h1>${escapedTitle}</h1>
+  <p>${escapedDesc}</p>
+  <a href="${articleUrl}">Read on GraceHub →</a>
+  <script>window.location.href = "${articleUrl}";</script>
+</body>
+</html>`;
+    }
 
-    return new Response(html, {
-        headers: {
-            'Content-Type': 'text/html; charset=utf-8',
-            // Cache for 5 minutes on CDN, serve stale for up to 10 minutes while revalidating
-            'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-        },
-    });
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    res.end(indexHtml);
 }
