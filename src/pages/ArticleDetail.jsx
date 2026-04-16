@@ -11,7 +11,7 @@ function ArticleDetail() {
     const [articleId, setArticleId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
+
     // User interaction state
     const [hasLiked, setHasLiked] = useState(false);
     const [hasDisliked, setHasDisliked] = useState(false);
@@ -27,9 +27,9 @@ function ArticleDetail() {
         const loadVoices = () => {
             const availableVoices = window.speechSynthesis.getVoices();
             // Prioritize "Natural" or high-quality US voices
-            const selectedVoice = availableVoices.find(v => v.name.includes('Natural') || v.name.includes('Google US English')) 
-                               || availableVoices.find(v => v.lang.startsWith('en'))
-                               || availableVoices[0];
+            const selectedVoice = availableVoices.find(v => v.name.includes('Natural') || v.name.includes('Google US English'))
+                || availableVoices.find(v => v.lang.startsWith('en'))
+                || availableVoices[0];
             setVoice(selectedVoice);
         };
 
@@ -82,8 +82,8 @@ function ArticleDetail() {
 
         window.addEventListener('beforeunload', handleUnload);
 
-        return () => { 
-            document.title = 'GraceHub'; 
+        return () => {
+            document.title = 'GraceHub';
             window.speechSynthesis.cancel(); // Stop speaking when leaving
             window.removeEventListener('beforeunload', handleUnload);
         };
@@ -106,12 +106,12 @@ function ArticleDetail() {
             const utterance = new SpeechSynthesisUtterance(article.content);
             utterance.rate = 0.9;
             if (voice) utterance.voice = voice;
-            
+
             utterance.onstart = () => {
                 setIsSpeaking(true);
                 setIsPaused(false);
             };
-            
+
             utterance.onend = () => {
                 setIsSpeaking(false);
                 setIsPaused(false);
@@ -162,7 +162,7 @@ function ArticleDetail() {
     };
 
     if (loading) return <div className="max-w-[800px] mx-auto px-6 pt-32 text-center animate-pulse" style={{ color: 'var(--text-muted)' }}>Loading story...</div>;
-    
+
     if (error) return (
         <div className="max-w-[800px] mx-auto px-6 pt-32 text-center">
             <h2 className="text-red-500 text-2xl font-black mb-6">{error}</h2>
@@ -203,7 +203,7 @@ function ArticleDetail() {
                     </div>
 
                     {!isSpeaking && (
-                        <button 
+                        <button
                             onClick={handleListen}
                             className="flex items-center gap-3 px-6 py-3 rounded-2xl border font-bold text-sm transition-all hover:scale-105 active:scale-95 cursor-pointer self-start sm:self-center bg-violet-600/10 border-violet-500/30 text-violet-400"
                         >
@@ -289,7 +289,7 @@ function ArticleDetail() {
                     <span className="text-sm font-bold" style={{ color: 'var(--text-muted)' }}>{dislikes}</span>
                 </div>
             </div>
-            
+
             {/* Footer Call to Action */}
             <div className="mt-24 p-10 sm:p-12 rounded-[2.5rem] text-center border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
                 <h3 className="text-2xl font-black mb-4" style={{ color: 'var(--text-primary)' }}>Thanks for reading!</h3>

@@ -8,6 +8,7 @@ import Write from './pages/Write';
 import Login from './pages/Login';
 import ArticleDetail from './pages/ArticleDetail';
 import Dashboard from './pages/Dashboard';
+import Footer from './components/Footer';
 
 function Navbar({ isDark, toggleTheme }) {
   const { user, isAuthor } = useAuth();
@@ -56,6 +57,30 @@ function Navbar({ isDark, toggleTheme }) {
               </Link>
             </>
           )}
+
+          <a
+            href="https://graceoyiza.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:block transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => (e.target.style.color = 'var(--text-primary)')}
+            onMouseLeave={e => (e.target.style.color = 'var(--text-secondary)')}
+          >
+            About
+          </a>
+
+          <a
+            href="https://www.linkedin.com/in/grace-gift"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:block transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => (e.target.style.color = 'var(--text-primary)')}
+            onMouseLeave={e => (e.target.style.color = 'var(--text-secondary)')}
+          >
+            Contact
+          </a>
 
           {user && (
             <button
@@ -124,6 +149,7 @@ function App() {
             <Route path="/article/:slug" element={<ArticleDetail />} />
           </Routes>
         </main>
+        <Footer />
       </Router>
     </AuthProvider>
   );
