@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
+import { Play, Pause, Square, Volume2 } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
 
@@ -16,6 +17,27 @@ function ArticleDetail() {
     const [hasDisliked, setHasDisliked] = useState(false);
     const [likes, setLikes] = useState(0);
     const [dislikes, setDislikes] = useState(0);
+
+    // Audio / Speech State
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
+    const [voice, setVoice] = useState(null);
+
+    useEffect(() => {
+        const loadVoices = () => {
+            const availableVoices = window.speechSynthesis.getVoices();
+            // Prioritize "Natural" or high-quality US voices
+            const selectedVoice = availableVoices.find(v => v.name.includes('Natural') || v.name.includes('Google US English')) 
+                               || availableVoices.find(v => v.lang.startsWith('en'))
+                               || availableVoices[0];
+            setVoice(selectedVoice);
+        };
+
+        loadVoices();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
+    }, []);
 
     useEffect(() => {
         const fetchArticle = async () => {
@@ -54,8 +76,61 @@ function ArticleDetail() {
         if (article?.title) {
             document.title = `${article.title} | GraceHub`;
         }
-        return () => { document.title = 'GraceHub'; };
+        const handleUnload = () => {
+            window.speechSynthesis.cancel();
+        };
+
+        window.addEventListener('beforeunload', handleUnload);
+
+        return () => { 
+            document.title = 'GraceHub'; 
+            window.speechSynthesis.cancel(); // Stop speaking when leaving
+            window.removeEventListener('beforeunload', handleUnload);
+        };
     }, [article]);
+
+    const handleListen = () => {
+        if (!article?.content) return;
+
+        if (isSpeaking) {
+            if (isPaused) {
+                window.speechSynthesis.resume();
+                setIsPaused(false);
+            } else {
+                window.speechSynthesis.pause();
+                setIsPaused(true);
+            }
+        } else {
+            // Start fresh
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(article.content);
+            utterance.rate = 0.9;
+            if (voice) utterance.voice = voice;
+            
+            utterance.onstart = () => {
+                setIsSpeaking(true);
+                setIsPaused(false);
+            };
+            
+            utterance.onend = () => {
+                setIsSpeaking(false);
+                setIsPaused(false);
+            };
+
+            utterance.onerror = () => {
+                setIsSpeaking(false);
+                setIsPaused(false);
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+    };
+
+    const handleStop = () => {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+        setIsPaused(false);
+    };
 
     const handleLike = async () => {
         if (hasLiked || hasDisliked) return;
@@ -118,14 +193,52 @@ function ArticleDetail() {
                     {article.title}
                 </h1>
 
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 shrink-0 shadow-lg shadow-violet-500/20"></div>
-                    <div>
-                        <div className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Grace Oyiza</div>
-                        <div className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Publisher & Author</div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 shrink-0 shadow-lg shadow-violet-500/20"></div>
+                        <div>
+                            <div className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Grace Oyiza</div>
+                            <div className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Publisher & Author</div>
+                        </div>
                     </div>
+
+                    {!isSpeaking && (
+                        <button 
+                            onClick={handleListen}
+                            className="flex items-center gap-3 px-6 py-3 rounded-2xl border font-bold text-sm transition-all hover:scale-105 active:scale-95 cursor-pointer self-start sm:self-center bg-violet-600/10 border-violet-500/30 text-violet-400"
+                        >
+                            <span className="text-xl">🔊</span>
+                            Listen to Article
+                        </button>
+                    )}
                 </div>
             </div>
+
+            {/* Floating Audio Player */}
+            {article && (
+                <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-[100] transition-all duration-500 ease-out ${isSpeaking ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
+                    <div className="p-4 rounded-[2rem] border shadow-2xl backdrop-blur-2xl flex items-center justify-between gap-4"
+                        style={{ background: 'var(--navbar-bg)', borderColor: 'var(--border-color)' }}>
+                        <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="w-10 h-10 rounded-xl bg-violet-600/20 flex items-center justify-center shrink-0">
+                                <Volume2 className="w-5 h-5 text-violet-400" />
+                            </div>
+                            <div className="overflow-hidden">
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-violet-400 truncate">Now Reading</div>
+                                <div className="text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>{article.title}</div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button onClick={handleStop} className="p-2.5 rounded-xl hover:bg-white/5 transition-colors cursor-pointer" title="Stop">
+                                <Square className="w-5 h-5 fill-slate-500 text-slate-500" />
+                            </button>
+                            <button onClick={handleListen} className="p-3 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-600/30 transition-all active:scale-95 cursor-pointer" title={isPaused ? "Play" : "Pause"}>
+                                {isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Cover Image */}
             {article.imageUrl && (
